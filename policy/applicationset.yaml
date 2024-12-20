@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: policy
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+  - git:
+      repoURL: https://github.com/larsks/hypershift-apps
+      revision: HEAD
+      directories:
+      - path: "policy/*"
+  template:
+    metadata:
+      name: "policy-{{ .path.basename }}"
+    spec:
+      project: default
+      destination:
+        namespace: openshift-gitops
+        name: in-cluster
+      sources:
+      - repoURL: https://github.com/larsks/hypershift-apps
+        targetRevision: HEAD
+        path: "{{ .path.path }}"
+      syncPolicy:
+        automated:
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+
